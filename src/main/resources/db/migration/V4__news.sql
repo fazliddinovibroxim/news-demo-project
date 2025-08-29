@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS news (
     deleted_at TIMESTAMP,
     CONSTRAINT fk_news_created_by FOREIGN KEY (created_by_id) REFERENCES auth_user(id),
     CONSTRAINT fk_news_updated_by FOREIGN KEY (updated_by_id) REFERENCES auth_user(id),
-    CONSTRAINT fk_news_category FOREIGN KEY (category_id) REFERENCES category(id)
+    CONSTRAINT fk_news_category FOREIGN KEY (category_id) REFERENCES category_scheme.category(id)
     );
 
 CREATE TABLE news_translation (
@@ -59,7 +59,7 @@ CREATE TABLE news_translation (
 CREATE TABLE news_tag (
                           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                           news_id UUID NOT NULL REFERENCES news(id) ON DELETE CASCADE,
-                          tag_id UUID NOT NULL REFERENCES tag(id) ON DELETE CASCADE,
+                          tag_id UUID NOT NULL REFERENCES news_schema.tag(id) ON DELETE CASCADE,
 
                           created_by_id UUID REFERENCES auth_user(id),
                           updated_by_id UUID REFERENCES auth_user(id),

@@ -24,5 +24,5 @@ public class NewsUpdateDto {
     private Date unpublishAt;
     private Set<Tag> tags;
 
-    private List<NewsTranslationDTO> translations;
+    private List<NewsTranslationDto> translations;
 }

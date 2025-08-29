@@ -8,6 +8,7 @@ import lombok.*;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,5 +25,6 @@ public class NewsRequestDTO {
     private LocalDateTime publishAt;
     private LocalDateTime unpublishAt;
     private Set<Tag> tags;
-    private List<NewsTranslationDTO> translations;
+//    private List<NewsTranslationDTO> translations;
+    Map<String, NewsTranslationDto> translations;
 }

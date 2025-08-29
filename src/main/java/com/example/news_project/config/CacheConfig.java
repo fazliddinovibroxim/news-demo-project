@@ -19,7 +19,7 @@ public class CacheConfig {
                 .entryTtl(Duration.ofSeconds(60)); // TTL for news list
 
         RedisCacheConfiguration newsSingleCache = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofSeconds(120)); // TTL for single news
+                .entryTtl(Duration.ofSeconds(120));
 
         return RedisCacheManager.builder(connectionFactory)
                 .withCacheConfiguration("news_list", newsListCache)

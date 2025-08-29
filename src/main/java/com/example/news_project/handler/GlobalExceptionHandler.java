@@ -1,9 +1,14 @@
 package com.example.news_project.handler;
 
+import org.springframework.boot.web.server.WebServer;
+import org.springframework.boot.web.server.WebServerException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -12,5 +17,13 @@ public class GlobalExceptionHandler {
 //    @ResponseStatus(code = HttpStatus.NOT_FOUND)
     public ResponseEntity<?> handleException(LoginException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> hadle(Exception e, WebRequest webRequest) {
+        return ResponseEntity.ok(Map.of(
+                "error", e.getMessage(),
+                "Path", webRequest.getDescription(false)
+        ));
     }
 }

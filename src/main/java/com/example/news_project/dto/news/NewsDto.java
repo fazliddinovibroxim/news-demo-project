@@ -1,11 +1,9 @@
 package com.example.news_project.dto.news;
 
-import com.example.news_project.dto.news.NewsTranslationDTO;
 import com.example.news_project.enums.NewsStatus;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,12 +26,12 @@ public class NewsDto {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
-    private List<NewsTranslationDTO> translations;
+    private List<NewsTranslationDto> translations;
     public NewsDto(UUID id,
                    NewsStatus status,
                    UUID categoryId,
                    UUID authorId,
-                   List<NewsTranslationDTO> translations) {
+                   List<NewsTranslationDto> translations) {
         this.id = id;
         this.status = status != null ? status.name() : null;
         this.categoryId = categoryId;

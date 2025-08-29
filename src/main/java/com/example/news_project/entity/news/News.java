@@ -15,10 +15,8 @@ import org.springframework.data.annotation.LastModifiedBy;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
 @Audited
 @Entity
 @Table(name = "news")
@@ -88,6 +86,6 @@ public class News {
 
     private LocalDateTime deletedAt;
 
-    @OneToMany(mappedBy = "news", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<NewsTranslation> translations = new HashSet<>();
+    @OneToMany(mappedBy = "news", cascade = CascadeType.ALL, orphanRemoval = true,  fetch = FetchType.LAZY)
+    private List<NewsTranslation> translations = new ArrayList<>();
 }

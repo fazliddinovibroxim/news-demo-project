@@ -6,7 +6,9 @@ import com.example.news_project.repository.ads.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -55,4 +57,36 @@ public class AdsAssignmentService {
     public void delete(String id) {
         assignmentRepo.deleteById(UUID.fromString(id));
     }
+
+    public AdsAssignment pickByWeight(List<AdsAssignment> ads) {
+        int totalWeight = ads.stream().mapToInt(AdsAssignment::getWeight).sum();
+        int random = new Random().nextInt(totalWeight);
+
+        int current = 0;
+        for (AdsAssignment ad : ads) {
+            current += ad.getWeight();
+            if (random < current) {
+                return ad;
+            }
+        }
+        return null;
+    }
+
+
+    public AdsAssignment getAd(String lang, String category, UUID placementId) {
+        List<AdsAssignment> ads = assignmentRepo.findActiveAssignments(
+                LocalDateTime.now(), lang, category
+        );
+
+        ads = ads.stream()
+                .filter(ad -> ad.getPlacement().getId().equals(placementId))
+                .toList();
+
+        if (ads.isEmpty()) return null;
+
+        return pickByWeight(ads);
+    }
+
+
+
 }

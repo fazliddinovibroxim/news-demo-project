@@ -1,6 +1,8 @@
 package com.example.news_project.entity.news;
 
 import com.example.news_project.entity.AuthUser;
+import com.example.news_project.enums.ContentCreativeType;
+import com.example.news_project.enums.NewsLanguages;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,8 +38,9 @@ public class NewsTranslation {
     @JsonBackReference
     private News news;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String lang;
+    private NewsLanguages lang;
 
     @Column(nullable = false)
     private String title;
@@ -48,10 +51,14 @@ public class NewsTranslation {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String content; // HTML
+    private ContentCreativeType content; // HTML
 
+    @Column(nullable = false)
     private String metaTitle;
+
+    @Column(nullable = false)
     private String metaDescription;
 
     @ManyToOne(fetch = FetchType.LAZY)

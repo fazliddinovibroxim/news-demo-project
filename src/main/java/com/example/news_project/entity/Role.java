@@ -16,8 +16,8 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
 @Setter
+@Getter
 @Entity
 @Table(name = "role", schema = "auth")
 public class Role {
@@ -25,7 +25,6 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true)

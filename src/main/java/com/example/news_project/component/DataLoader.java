@@ -6,7 +6,6 @@ import com.example.news_project.enums.AppPermissions;
 import com.example.news_project.enums.AppRoleName;
 import com.example.news_project.repository.AuthUserRepository;
 import com.example.news_project.repository.RoleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Lazy;
@@ -18,25 +17,30 @@ import java.util.Set;
 @Component
 public class DataLoader implements CommandLineRunner {
     @Lazy
-    @Autowired
+    private final
     PasswordEncoder passwordEncoder;
-
-    @Autowired
+    private final
     RoleRepository roleRepository;
-    @Autowired
+    private final
     AuthUserRepository authUserRepository;
 
     @Value(value = "${spring.sql.init.mode}")
     private String mode;
 
+    public DataLoader(PasswordEncoder passwordEncoder, RoleRepository roleRepository, AuthUserRepository authUserRepository) {
+        this.passwordEncoder = passwordEncoder;
+        this.roleRepository = roleRepository;
+        this.authUserRepository = authUserRepository;
+    }
+
     @Override
     public void run(String... args) {
 
         if (mode.equals("always")) {
-            Role admin = new Role();
-            admin.setAppRoleName(AppRoleName.ADMIN);
-            admin.setAppPermissions(Set.of(AppPermissions.values()));
-            Role saveAdmin = roleRepository.save(admin);
+            Role role = new Role();
+            role.setAppRoleName(AppRoleName.ADMIN);
+            role.setAppPermissions(Set.of(AppPermissions.values()));
+            Role saveAdmin = roleRepository.save(role);
 
             AuthUser authUserAdmin = new AuthUser();
             authUserAdmin.setEnabled(true);

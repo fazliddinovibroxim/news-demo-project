@@ -4,6 +4,7 @@ import com.example.news_project.entity.news.News;
 import com.example.news_project.enums.NewsStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -38,5 +39,7 @@ public interface NewsRepository extends JpaRepository<News, UUID> {
     void unpublishScheduledNews(@Param("now") Timestamp now);
 
     void deleteAllByStatusAndUpdatedAtBefore(NewsStatus archived, Timestamp threshold);
+
+    Page<News> findAll(Specification<News> spec, Pageable pageable);
 }
 
