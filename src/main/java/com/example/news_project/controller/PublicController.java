@@ -1,5 +1,7 @@
 package com.example.news_project.controller;
+import com.example.news_project.dto.news.NewsTranslationDto;
 import com.example.news_project.entity.news.News;
+import com.example.news_project.enums.NewsLanguages;
 import com.example.news_project.service.PublicService;
 import com.example.news_project.service.news.NewsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +34,7 @@ public class PublicController {
         return ResponseEntity.status(one == null ? 404 : 200).body(one);
     }
 
-    @GetMapping("/{slug}")
+    @GetMapping("{lang}/{slug}")
     public ResponseEntity<News> getNewsBySlug(
             @PathVariable String slug,
             @RequestParam(defaultValue = "en") String lang) {
@@ -40,7 +42,4 @@ public class PublicController {
         News news = publicService.getNewsBySlug(slug, lang);
         return ResponseEntity.ok(news);
     }
-
-    //  yana davomi bor edi , voqtim yetmadi.
-
 }

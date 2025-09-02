@@ -17,7 +17,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "attachment", schema = "attachments")
-public class Attachment {
+public class  Attachment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

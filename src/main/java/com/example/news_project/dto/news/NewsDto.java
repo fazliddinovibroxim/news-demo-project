@@ -1,11 +1,22 @@
 package com.example.news_project.dto.news;
 
+import com.example.news_project.entity.Attachment;
+import com.example.news_project.entity.category_teg.Tag;
 import com.example.news_project.enums.NewsStatus;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -13,29 +24,41 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class NewsDto {
-    private UUID id;
-    private UUID authorId;
-    private UUID categoryId;
-    private UUID coverMediaId;
-    private String status;
+    @NotNull
+    private String id;
+    @NotNull
+    private String authorId;
+    @NotNull
+    private String categoryId;
+    private List<Attachment> attachments;
+
+
+    @NotNull(message = "status is required")
+    private NewsStatus status = NewsStatus.DRAFT;
+
+    @NotBlank
+    private String newsTitle;
     private boolean isFeatured;
     private boolean isDeleted;
+    private Set<Tag> tags = new HashSet<>();
+    @FutureOrPresent(message = "Publish date has to be now or in the future")
     private LocalDateTime publishAt;
+    @Future
     private LocalDateTime unpublishAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime deletedAt;
 
+    @CreatedDate
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    @OnDelete(action = OnDeleteAction.NO_ACTION)
+    private LocalDateTime deletedAt;
     private List<NewsTranslationDto> translations;
-    public NewsDto(UUID id,
-                   NewsStatus status,
-                   UUID categoryId,
-                   UUID authorId,
-                   List<NewsTranslationDto> translations) {
+
+    public NewsDto(String id, NewsStatus authorId, String categoryId, NewsStatus status, List<NewsTranslationDto> translations) {
         this.id = id;
-        this.status = status != null ? status.name() : null;
+        this.authorId = String.valueOf(authorId);
         this.categoryId = categoryId;
-        this.authorId = authorId;
+        this.status = status;
         this.translations = translations;
     }
 }

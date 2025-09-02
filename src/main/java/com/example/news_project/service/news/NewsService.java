@@ -6,13 +6,21 @@ import com.example.news_project.entity.news.NewsTranslation;
 import com.example.news_project.enums.NewsLanguages;
 import com.example.news_project.enums.NewsStatus;
 import com.example.news_project.repository.news.NewsRepository;
+import com.example.news_project.repository.news.NewsTranslationRepository;
 import com.example.news_project.service.AttachmentService;
+import com.example.news_project.util.SlugUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -22,7 +30,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -35,7 +42,10 @@ public class NewsService {
     @Value("${springdoc.default-pagesize}")
     private Integer pageSize;
 
+    private final NewsTranslationRepository translationRepository;
     private AttachmentService attachmentService;
+
+    private static final Logger log = LoggerFactory.getLogger(NewsService.class);
 
     public Page<NewsDto> getAllNews(
             String status,
@@ -55,8 +65,7 @@ public class NewsService {
                 : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortParams[0]));
 
-        Specification<News> spec = Specification.where(null);
-
+        Specification<News> spec = Specification.allOf();
         if (status != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
         }
@@ -88,15 +97,47 @@ public class NewsService {
         Page<News> all = newsRepository.findAll(pageable);
         return all;
     }
-    public News getNewsById(String id) {
-        return newsRepository.findById(UUID.fromString(id))
-                .orElseThrow(() -> new RuntimeException("News not found"));
+
+
+    public NewsTranslationDto getNewsByLang(String  newsId, NewsLanguages lang) {
+        NewsTranslation translation = translationRepository
+                .findByNewsIdAndLang(newsId, lang)
+                .orElseThrow(() -> new RuntimeException("Translation not found"));
+
+        return NewsTranslationDto.builder()
+                .lang(translation.getLang())
+                .title(translation.getTitle())
+                .slug(translation.getSlug())
+                .summary(translation.getSummary())
+                .content(translation.getContent())
+                .metaTitle(translation.getMetaTitle())
+                .metaDescription(translation.getMetaDescription())
+                .build();
     }
 
+
+    @Cacheable(value = "news",key = "#id")
+    public News getNewsById(String id) {
+        log.info("❌ Cache MISS → fetching from DB, id={}", id);
+        return newsRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> {
+                    log.warn("News not found with id={}", id); // warning
+                    return new RuntimeException();
+    });
+}
+
     public NewsDto createNews(NewsRequestDTO dto) {
+
+        log.info("Creating news with title: {}", dto.getNewsTitle());
+        if (dto.getPublishAt() != null && dto.getUnpublishAt() != null) {
+            if (!dto.getPublishAt().isBefore(dto.getUnpublishAt())) {
+                throw new IllegalArgumentException("publishAt must be before unPublish_At");
+            }
+        }
+        log.debug("PublishAt: {}, UnpublishAt: {}", dto.getPublishAt(), dto.getUnpublishAt());
         News news = new News();
-        news.setAuthorId(dto.getAuthorId());
-        news.setCategoryId(dto.getCategoryId());
+        news.setAuthorId(String.valueOf(dto.getAuthorId()));
+        news.setCategoryId(String.valueOf(dto.getCategoryId()));
         news.setTags(dto.getTags());
         news.setStatus(NewsStatus.PUBLISHED);
         news.setCreatedAt(LocalDateTime.now());
@@ -117,8 +158,14 @@ public class NewsService {
                     .metaDescription(tDto.getMetaDescription())
                     .build();
 
+            // generate slug
+            String slug = SlugUtil.toSlug(tDto.getTitle());
+            translation.setSlug(slug);
+
+            translation.setNews(news);
             translations.add(translation);
-        });
+
+    });
 
         news.setTranslations(translations);
 
@@ -126,7 +173,14 @@ public class NewsService {
         return mapToDto(news);
     }
 
+    @CachePut(value = "news", key = "#id")
     public NewsDto updateNews(String id, NewsUpdateDto dto) {
+//        if (dto.getPublishAt() != null && dto.getUnpublishAt() != null) {
+//            if (!dto.getPublishAt().isBefore(dto.getUnpublishAt())) {
+//                throw new IllegalArgumentException("publishAt must be before unpublishAt");
+//            }
+//        }
+        log.info("♻ Cache UPDATED for id={}\"",id);
         News news = newsRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new RuntimeException("News not found"));
         news.setTags(dto.getTags());
@@ -147,7 +201,7 @@ public class NewsService {
                 .orElseThrow(() -> new RuntimeException("News not found"));
         return mapToDto(newsRepository.save(news));
     }
-
+    @CachePut(value = "news", key = "#id")
     public NewsDto updateStatus(String  id, StatusUpdateDto dto) {
         News news = newsRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new RuntimeException("News not found"));
@@ -155,6 +209,7 @@ public class NewsService {
         return mapToDto(newsRepository.save(news));
     }
 
+    @CacheEvict(value = "news", key = "#id")
     public void softDeleteNews(String id) {
         News news = newsRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new RuntimeException("News not found"));
@@ -169,7 +224,9 @@ public class NewsService {
        return newsRepository.save(news);
     }
 
+    @CacheEvict(value = "news", key = "#id")
     public String  hardDeleteNews(String id) {
+        log.info("\uD83D\uDDD1 Cache EVICTED for id={}",id);
         newsRepository.deleteById(UUID.fromString(id));
         return "news successfully deleted";
     }
@@ -186,8 +243,8 @@ public class NewsService {
         return new NewsDto(
                 news.getId(),
                 news.getStatus(),
-                news.getCategoryId() != null ? news.getCategoryId() : null,
-                news.getAuthorId() != null ? news.getAuthorId() : null,
+                news.getCategoryId() != null ? String.valueOf(news.getCategoryId()) : null,
+                news.getAuthorId() != null ? NewsStatus.valueOf(news.getAuthorId()) : null,
                 news.getTranslations().stream().map(tr -> new NewsTranslationDto(
                         tr.getLang(), tr.getTitle(), tr.getSlug(),tr.getSummary(),tr.getContent(),tr.getMetaTitle(),tr.getMetaDescription()
                 )).toList()

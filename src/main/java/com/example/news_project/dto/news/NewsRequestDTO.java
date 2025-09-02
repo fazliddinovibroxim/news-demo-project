@@ -20,6 +20,7 @@ import java.util.UUID;
 public class NewsRequestDTO {
     private UUID authorId;
     private UUID categoryId;
+    private String newsTitle;
     private List<Attachment> attachmentList;
     private boolean isFeatured;
     private LocalDateTime publishAt;

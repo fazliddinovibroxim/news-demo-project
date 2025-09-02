@@ -45,7 +45,7 @@ public class NewsTranslation {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String slug;
 
     @Column(columnDefinition = "TEXT")
@@ -53,7 +53,7 @@ public class NewsTranslation {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "TEXT")
-    private ContentCreativeType content; // HTML
+    private ContentCreativeType content;
 
     @Column(nullable = false)
     private String metaTitle;
@@ -62,7 +62,6 @@ public class NewsTranslation {
     private String metaDescription;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @CreatedBy
     @JoinColumn(name = "created_by_id")
     private AuthUser createdBy;
 

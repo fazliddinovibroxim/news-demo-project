@@ -11,6 +11,7 @@ import com.example.news_project.service.news.NewsHistoryService;
 import com.example.news_project.service.news.NewsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +25,16 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/admin/news")
 @RequiredArgsConstructor
+@Slf4j
 public class NewsAdminController {
 
     private final NewsHistoryService newsHistoryService;
     private final NewsService newsService;
     @GetMapping("/{id}")
     public ResponseEntity<News> getNewsById(@PathVariable String id) {
+        log.info("Request to get news with id={}", id);
         var news = newsService.getNewsById(id);
+        log.debug("Returning news: {}", news);
         return news == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(news);
     }
     @GetMapping

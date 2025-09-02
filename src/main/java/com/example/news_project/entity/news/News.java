@@ -26,19 +26,17 @@ import java.util.*;
 @AllArgsConstructor
 @Builder
 public class News {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
+    private String  id;
     @JoinColumn(name = "author_id", nullable = false)
-    private UUID authorId;
-
+    private String  authorId;
     @JoinColumn(name = "category_id")
-    private UUID categoryId;
+    private String  categoryId;
 
-    // Optional cover media (image, video, etc.)
-//    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(nullable = false)
+    private String newsTitle;
+
     @JoinColumn(name = "cover_media_id")
     @OneToMany(cascade = CascadeType.ALL)
     private List<Attachment> attachments;
@@ -55,37 +53,28 @@ public class News {
             joinColumns = @JoinColumn(name = "news_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
+    @Column(nullable = false)
     private Set<Tag> tags = new HashSet<>();
 
-    @Column(nullable = false)
     private boolean isFeatured = false;
-
-    @Column(nullable = false)
     private boolean isDeleted = false;
 
     private LocalDateTime publishAt;
     private LocalDateTime unpublishAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @CreatedBy
-    @JoinColumn(name = "created_by_id")
     private AuthUser createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @LastModifiedBy
     @JoinColumn(name = "updated_by_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     private AuthUser updatedBy;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-
+    @Column(nullable = false)
     private LocalDateTime deletedAt;
-
     @OneToMany(mappedBy = "news", cascade = CascadeType.ALL, orphanRemoval = true,  fetch = FetchType.LAZY)
     private List<NewsTranslation> translations = new ArrayList<>();
 }
